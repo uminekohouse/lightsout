@@ -14,6 +14,27 @@ void print_vector(vector<int> vec) {
   cout << endl;
 }
 
+vector<vector<int>> vector_to_matrix(int H, int W, vector<int> vec) {
+  vector<vector<int>> res(H, vector<int>(W));
+  for (int i = 0; i < H; ++i) {
+    for (int j = 0; j < W; ++j) {
+      res[i][j] = vec[i * W + j];
+    }
+  }
+  return res;
+}
+
+void print_matrix(vector<vector<int>> matrix) {
+  for (int i = 0; i < matrix.size(); ++i) {
+    for (int j = 0; j < matrix[i].size(); ++j) {
+      if (j)
+        cout << " ";
+      cout << matrix[i][j];
+    }
+    cout << endl;
+  }
+}
+
 vector<vector<int>> get_laplacian_matrix(int H, int W) {
   int N = H * W;
   vector<vector<int>> A(N, vector<int>(N, false));
@@ -123,7 +144,7 @@ set<vector<int>> get_kernel_vectors(vector<vector<int>> A, int corank) {
   set<vector<int>> kernel_base_vectors;
   for (int i = N - corank; i < N; ++i) {
     vector<int> v(N, 0);
-    for (int j = 0; j < i - 1; ++j) {
+    for (int j = 0; j < i; ++j) {
       if (A[j][i])
         v[j] = 1;
     }
@@ -152,8 +173,6 @@ set<vector<int>> solve_all_ones(int H, int W,
   int N = H * W;
   vector<int> all_ones(N, 1);
   vector<int> solve_vector = matrix_times_vector(inverse_matrix, all_ones);
-  cout << "solve" << endl;
-  print_vector(solve_vector);
   set<vector<int>> solve_vector_set;
   set<vector<int>> kernek_vectors = get_kernel_vectors(stair_matrix, corank);
   for (auto vec : kernek_vectors) {
@@ -174,22 +193,31 @@ void write_csv(int i, int A_1, int A_2, int corank) {
 }
 
 int main() {
-  for (int i = 1; i <= 3; ++i) {
-    for (int j = 1; j <= 3; ++j) {
+  int H = 4;
+  int W = 4;
+  cout << H * W << endl;
+  for (int i = 1; i <= H; ++i) {
+    for (int j = 1; j <= W; ++j) {
       vector<vector<int>> A = get_laplacian_matrix(i, j);
       vector<vector<int>> B;
       tie(A, B) = get_stair_matrix_inverse_matrix(A);
       int corank = get_corank(A);
       set<vector<int>> solves;
       solves = solve_all_ones(i, j, B, A, corank);
-      cout << "H " << i << " ,W:" << j << ", size:" << solves.size() << endl;
-      for (auto vec : solves)
-        print_vector(vec);
-      set<vector<int>> st = get_kernel_vectors(A, corank);
-      cout << "kernel" << endl;
-      for (auto vec : st)
-        print_vector(vec);
+      cout << "H " << i << " W" << j << " solvesize " << solves.size() << endl;
+      cout << "corank" << corank << endl;
       cout << endl;
+      cout << "solve_matrix_list" << endl;
+      for (auto vec : solves) {
+        print_matrix(vector_to_matrix(i, j, vec));
+        cout << endl;
+      }
+      /*
+      for (auto vec : get_kernel_vectors(A, corank)) {
+        print_matrix(vector_to_matrix(i, j, vec));
+        cout << endl;
+      }
+      */
     }
   }
 }
